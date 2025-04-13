@@ -2,7 +2,6 @@ package gh
 
 import (
 	"bufio"
-	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -78,9 +77,10 @@ func ReadChart(dirPath string) (*Chart, error) {
 		iniFile:   "",
 	}
 
-	filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
+	files, _ := os.ReadDir(dirPath)
+	for _, d := range files {
 		if d.IsDir() {
-			return nil
+			continue
 		}
 		if strings.ToLower(filepath.Ext(d.Name())) == ".chart" {
 			chart.chartFile = d.Name()
@@ -91,8 +91,7 @@ func ReadChart(dirPath string) (*Chart, error) {
 		if strings.ToLower(d.Name()) == "song.ini" {
 			chart.iniFile = d.Name()
 		}
-		return nil
-	})
+	}
 
 	if chart.chartFile != "" {
 		file, err := os.Open(path.Join(chart.path, chart.chartFile))
