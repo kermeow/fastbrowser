@@ -1,9 +1,9 @@
 package fonts
 
 import (
+	"fastgh3/fastbrowser/fonts/nunito"
+	"fastgh3/fastbrowser/fonts/ubuntumono"
 	"fmt"
-	"nylenol/bootstrapper/fonts/nunito"
-	"nylenol/bootstrapper/fonts/ubuntumono"
 	"sync"
 
 	"gioui.org/font"
