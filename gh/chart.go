@@ -115,12 +115,12 @@ func ReadChart(dirPath string) (*Chart, error) {
 		}
 
 		values := readSongInfo(file)
-		chart.Name = getOrDefault(values, "name", "Unknown")
-		chart.Artist = getOrDefault(values, "artist", "Unknown")
-		chart.Album = getOrDefault(values, "album", "Unknown")
-		chart.Genre = getOrDefault(values, "genre", "Unknown")
-		chart.Year = getOrDefault(values, "year", "Unknown")
-		chart.Charter = getOrDefault(values, "charter", "Unknown")
+		chart.Name = getOrDefault(values, "name", chart.Name)
+		chart.Artist = getOrDefault(values, "artist", chart.Artist)
+		chart.Album = getOrDefault(values, "album", chart.Album)
+		chart.Genre = getOrDefault(values, "genre", chart.Genre)
+		chart.Year = getOrDefault(values, "year", chart.Year)
+		chart.Charter = getOrDefault(values, "charter", chart.Charter)
 
 		songLenStr := getOrDefault(values, "song_length", "")
 		if songLenStr != "" {
