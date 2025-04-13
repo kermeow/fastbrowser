@@ -22,3 +22,6 @@ go.work.sum
 
 # env file
 .env
+
+# Example chart
+example/
