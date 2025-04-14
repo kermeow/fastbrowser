@@ -1,16 +1,24 @@
 package main
 
 import (
-	"fastgh3/fastbrowser/gh"
-	"fmt"
-	"time"
+	"fastgh3/fastbrowser/browser"
+	"fastgh3/fastbrowser/config"
+	"log"
+	"os"
+
+	"gioui.org/app"
 )
 
 func main() {
-	start := time.Now().UnixMilli()
-	for _ = range 10000 {
-		_, _ = gh.ReadChart("example")
-	}
-	total := time.Now().UnixMilli() - start
-	fmt.Printf("%d ms\n", total)
+	conf, _ := config.Load()
+
+	ui := browser.New(conf)
+	go func() {
+		err := ui.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+		os.Exit(0)
+	}()
+	app.Main()
 }
