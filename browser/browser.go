@@ -30,6 +30,7 @@ type Browser struct {
 	Theme  *material.Theme
 	Charts []*gh.Chart
 
+	loading bool
 	songList *widgets.SongList
 }
 
@@ -50,14 +51,14 @@ func New(conf *config.Config) *Browser {
 	theme.Shaper = text.NewShaper(text.WithCollection(fonts.Collection()))
 	theme.Face = "Nunito"
 
-	charts := make([]*gh.Chart, 0)
-
 	browser := &Browser{
 		Window: window,
 
 		Config: conf,
 		Theme:  &theme,
-		Charts: charts,
+		Charts: nil,
+
+		loading: true,
 	}
 	browser.songList = widgets.NewSongList(&theme, &browser.Charts)
 	return browser
@@ -65,7 +66,7 @@ func New(conf *config.Config) *Browser {
 
 func (ui *Browser) Run() error {
 	// ui.songList.Charts = &ui.Charts
-	ui.getCharts()
+	go ui.getCharts()
 
 	var ops op.Ops
 	for {
@@ -76,8 +77,12 @@ func (ui *Browser) Run() error {
 			gtx := app.NewContext(&ops, e)
 			paint.Fill(gtx.Ops, ui.Theme.Bg)
 
-			inset := layout.UniformInset(unit.Dp(16))
-			inset.Layout(gtx, ui.draw)
+			if ui.Charts == nil || !ui.loading {
+				inset := layout.UniformInset(unit.Dp(16))
+				inset.Layout(gtx, ui.draw)
+			} else {
+				layout.Center.Layout(gtx, material.H2(ui.Theme, "We're still scanning your charts!").Layout)
+			}
 
 			e.Frame(gtx.Ops)
 		}
@@ -94,6 +99,8 @@ func (ui *Browser) draw(gtx layout.Context) layout.Dimensions {
 func (ui *Browser) getCharts() {
 	startTime := time.Now()
 
+	charts := make([]*gh.Chart, 0)
+
 	for _, root := range ui.Config.SearchDirs {
 		root = filepath.Clean(root)
 		if fi, err := os.Stat(root); os.IsNotExist(err) || !fi.Mode().IsDir() {
@@ -108,7 +115,7 @@ func (ui *Browser) getCharts() {
 				if err != nil {
 					return nil
 				}
-				ui.Charts = append(ui.Charts, chart)
+				charts = append(charts, chart)
 				return filepath.SkipDir
 			}
 			return nil
@@ -117,4 +124,8 @@ func (ui *Browser) getCharts() {
 
 	finishTime := time.Now()
 	log.Printf("Read %d charts in %dms", len(ui.Charts), finishTime.Sub(startTime).Milliseconds())
+
+	ui.Charts = charts
+	ui.loading = false
+	ui.Invalidate()
 }
