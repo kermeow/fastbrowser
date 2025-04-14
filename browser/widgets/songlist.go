@@ -71,7 +71,7 @@ func (sl *SongList) Layout(gtx layout.Context) layout.Dimensions {
 
 	i := 0
 	minI := int(sl.scrollPosition)
-	maxI := minI + (gtx.Constraints.Max.Y / 36)
+	maxI := minI + (gtx.Constraints.Max.Y / 36) + 1
 	if maxI > noCharts {
 		maxI = noCharts
 	}
