@@ -122,10 +122,10 @@ func (ui *Browser) getCharts() {
 			ui.Invalidate()
 			name := strings.ToLower(d.Name())
 			ext := filepath.Ext(name)
+			nameNoExt := strings.TrimSuffix(name, ext)
 			// time.Sleep(time.Millisecond * 100)
-			if name == "song.ini" ||
-				name[0:6] == "album." ||
-				name[0:7] == "guitar." ||
+			if nameNoExt == "song" ||
+				nameNoExt == "album" ||
 				ext == ".chart" ||
 				ext == ".mid" {
 				// WE HAVE A WINNER
