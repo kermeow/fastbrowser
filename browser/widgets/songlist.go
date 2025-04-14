@@ -11,6 +11,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/unit"
 	"gioui.org/widget/material"
 )
 
@@ -69,22 +70,26 @@ func (sl *SongList) Layout(gtx layout.Context) layout.Dimensions {
 	defer op.Offset(image.Pt(4, 4)).Push(gtx.Ops).Pop()
 	// defer op.Offset(image.Pt(0, int(-sl.scrollPosition*36))).Push(gtx.Ops).Pop()
 
-	i := 0
-	minI := int(sl.scrollPosition)
-	maxI := minI + (gtx.Constraints.Max.Y / 36) + 1
-	if maxI > noCharts {
-		maxI = noCharts
-	}
-	for _, chart := range (*sl.Charts)[minI:maxI] {
-		if len(sl.buttons) < i+1 {
-			btn := &SongButton{Chart: chart, Theme: sl.Theme}
-			sl.buttons = append(sl.buttons, btn)
+	if noCharts > 0 {
+		i := 0
+		minI := int(sl.scrollPosition)
+		maxI := minI + (gtx.Constraints.Max.Y / 36) + 1
+		if maxI > noCharts {
+			maxI = noCharts
 		}
-		btn := sl.buttons[i]
-		btn.Chart = chart
-		btn.Layout(gtx, func(sb *SongButton) { sl.SelectedChart = sb.Chart })
-		defer op.Offset(image.Pt(0, 36)).Push(gtx.Ops).Pop()
-		i++
+		for _, chart := range (*sl.Charts)[minI:maxI] {
+			if len(sl.buttons) < i+1 {
+				btn := &SongButton{Chart: chart, Theme: sl.Theme}
+				sl.buttons = append(sl.buttons, btn)
+			}
+			btn := sl.buttons[i]
+			btn.Chart = chart
+			btn.Layout(gtx, func(sb *SongButton) { sl.SelectedChart = sb.Chart })
+			defer op.Offset(image.Pt(0, 36)).Push(gtx.Ops).Pop()
+			i++
+		}
+	} else {
+		layout.Center.Layout(gtx, material.Label(sl.Theme, unit.Sp(18), "No charts were found!").Layout)
 	}
 
 	return layout.Dimensions{Size: gtx.Constraints.Max}

@@ -77,11 +77,11 @@ func (ui *Browser) Run() error {
 			gtx := app.NewContext(&ops, e)
 			paint.Fill(gtx.Ops, ui.Theme.Bg)
 
-			if ui.Charts == nil || !ui.loading {
+			if ui.Charts == nil || ui.loading {
+				layout.Center.Layout(gtx, material.H2(ui.Theme, "We're still scanning your charts!").Layout)
+			} else {
 				inset := layout.UniformInset(unit.Dp(16))
 				inset.Layout(gtx, ui.draw)
-			} else {
-				layout.Center.Layout(gtx, material.H2(ui.Theme, "We're still scanning your charts!").Layout)
 			}
 
 			e.Frame(gtx.Ops)
@@ -123,7 +123,7 @@ func (ui *Browser) getCharts() {
 	}
 
 	finishTime := time.Now()
-	log.Printf("Read %d charts in %dms", len(ui.Charts), finishTime.Sub(startTime).Milliseconds())
+	log.Printf("Read %d charts in %dms", len(charts), finishTime.Sub(startTime).Milliseconds())
 
 	ui.Charts = charts
 	ui.loading = false
