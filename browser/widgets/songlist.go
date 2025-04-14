@@ -54,30 +54,37 @@ func (sl *SongList) Layout(gtx layout.Context) layout.Dimensions {
 
 	paint.Fill(gtx.Ops, color.NRGBA{0, 0, 0, 150})
 
+	if sl.scrollPosition < 0 {
+		sl.scrollPosition = 0
+		gtx.Execute(op.InvalidateCmd{})
+	}
+	noCharts := len(*sl.Charts)
+	if sl.scrollPosition > float32(noCharts-1) {
+		sl.scrollPosition = float32(noCharts-1)
+		gtx.Execute(op.InvalidateCmd{})
+	}
+
 	gtx.Constraints.Max.X -= 8
 	gtx.Constraints.Max.Y -= 8
 	defer op.Offset(image.Pt(4, 4)).Push(gtx.Ops).Pop()
-	defer op.Offset(image.Pt(0, int(-sl.scrollPosition*32))).Push(gtx.Ops).Pop()
+	// defer op.Offset(image.Pt(0, int(-sl.scrollPosition*36))).Push(gtx.Ops).Pop()
 
 	i := 0
-	for _, chart := range *sl.Charts {
+	minI := int(sl.scrollPosition)
+	maxI := minI + (gtx.Constraints.Max.Y / 36)
+	if maxI > noCharts {
+		maxI = noCharts
+	}
+	for _, chart := range (*sl.Charts)[minI:maxI] {
 		if len(sl.buttons) < i+1 {
 			btn := &SongButton{Chart: chart, Theme: sl.Theme}
 			sl.buttons = append(sl.buttons, btn)
 		}
 		btn := sl.buttons[i]
+		btn.Chart = chart
 		btn.Layout(gtx, func(sb *SongButton) { sl.SelectedChart = sb.Chart })
 		defer op.Offset(image.Pt(0, 36)).Push(gtx.Ops).Pop()
 		i++
-	}
-
-	if sl.scrollPosition < 0 {
-		sl.scrollPosition = 0
-		gtx.Execute(op.InvalidateCmd{})
-	}
-	if sl.scrollPosition*32 > 36*float32(i-1) {
-		sl.scrollPosition = 36 * float32(i-1) / 32
-		gtx.Execute(op.InvalidateCmd{})
 	}
 
 	return layout.Dimensions{Size: gtx.Constraints.Max}
