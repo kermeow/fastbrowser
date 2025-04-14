@@ -98,13 +98,14 @@ func (sl *SongList) drawCharts(gtx layout.Context) layout.Dimensions {
 	noCharts := len(sl.displayCharts)
 	maxOnScreen := gtx.Constraints.Max.Y / 36
 
+	if maxOnScreen >= noCharts && sl.scrollPosition != 0 {
+		sl.scrollPosition = 0
+	}
+	if noCharts > maxOnScreen && sl.scrollPosition > noCharts - maxOnScreen {
+		sl.scrollPosition = noCharts - maxOnScreen
+	}
 	if sl.scrollPosition < 0 {
 		sl.scrollPosition = 0
-		gtx.Execute(op.InvalidateCmd{})
-	}
-	if sl.scrollPosition > noCharts - maxOnScreen {
-		sl.scrollPosition = noCharts - maxOnScreen
-		gtx.Execute(op.InvalidateCmd{})
 	}
 
 	gtx.Constraints.Max.X -= 8
