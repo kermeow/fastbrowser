@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -30,9 +31,9 @@ type Browser struct {
 	Theme  *material.Theme
 	Charts []*gh.Chart
 
-	loading bool
+	loading     bool
 	loadingText string
-	songList *widgets.SongList
+	songList    *widgets.SongList
 }
 
 func New(conf *config.Config) *Browser {
@@ -103,45 +104,57 @@ func (ui *Browser) draw(gtx layout.Context) layout.Dimensions {
 }
 
 func (ui *Browser) getCharts() {
-	startTime := time.Now()
-
 	charts := make([]*gh.Chart, 0)
 
-	for _, root := range ui.Config.SearchDirs {
-		root = filepath.Clean(root)
-		if fi, err := os.Stat(root); os.IsNotExist(err) || !fi.Mode().IsDir() {
-			log.Printf("Search dir '%s' doesn't exist", root)
-			continue
-		}
-		filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-			if d.IsDir() {
-				return nil
+	{ // Scanning charts
+		startTime := time.Now()
+		for _, root := range ui.Config.SearchDirs {
+			root = filepath.Clean(root)
+			if fi, err := os.Stat(root); os.IsNotExist(err) || !fi.Mode().IsDir() {
+				log.Printf("Search dir '%s' doesn't exist", root)
+				continue
 			}
-			// relpath, _ := filepath.Rel(root, path)
-			ui.loadingText = filepath.ToSlash(path)
-			ui.Invalidate()
-			name := strings.ToLower(d.Name())
-			ext := filepath.Ext(name)
-			nameNoExt := strings.TrimSuffix(name, ext)
-			// time.Sleep(time.Millisecond * 100)
-			if nameNoExt == "song" ||
-				nameNoExt == "album" ||
-				ext == ".chart" ||
-				ext == ".mid" {
-				// WE HAVE A WINNER
-				chart, err := gh.ReadChart(filepath.Dir(path))
-				if err != nil {
+			filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+				if d.IsDir() {
 					return nil
 				}
-				charts = append(charts, chart)
-				return filepath.SkipDir
-			}
-			return nil
-		})
+				// relpath, _ := filepath.Rel(root, path)
+				ui.loadingText = filepath.ToSlash(path)
+				ui.Invalidate()
+				name := strings.ToLower(d.Name())
+				ext := filepath.Ext(name)
+				nameNoExt := strings.TrimSuffix(name, ext)
+				// time.Sleep(time.Millisecond * 100)
+				if nameNoExt == "song" ||
+					nameNoExt == "album" ||
+					ext == ".chart" ||
+					ext == ".mid" {
+					// WE HAVE A WINNER
+					chart, err := gh.ReadChart(filepath.Dir(path))
+					if err != nil {
+						return nil
+					}
+					charts = append(charts, chart)
+					return filepath.SkipDir
+				}
+				return nil
+			})
+		}
+		finishTime := time.Now()
+		log.Printf("Read %d charts in %.3fms", len(charts), float32(finishTime.Sub(startTime).Microseconds()) / 1000)
 	}
 
-	finishTime := time.Now()
-	log.Printf("Read %d charts in %dms", len(charts), finishTime.Sub(startTime).Milliseconds())
+	ui.loadingText = "Sorting by title"
+	ui.Invalidate()
+
+	{ // Sorting charts
+		startTime := time.Now()
+		slices.SortStableFunc(charts, func(a, b *gh.Chart) int {
+			return strings.Compare(a.Name, b.Name)
+		})
+		finishTime := time.Now()
+		log.Printf("Sorted %d charts in %.3fms", len(charts), float32(finishTime.Sub(startTime).Microseconds()) / 1000)
+	}
 
 	ui.Charts = charts
 	ui.loading = false
