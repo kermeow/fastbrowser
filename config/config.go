@@ -21,10 +21,10 @@ func Default() *Config {
 func Load() (*Config, error) {
 	d := Default()
 
-	if _, err := os.Stat("fastlauncher.toml"); os.IsNotExist(err) {
+	if _, err := os.Stat("fastbrowser.toml"); os.IsNotExist(err) {
 		return d, nil
 	}
 
-	_, err := toml.DecodeFile("fastlauncher.toml", &d)
+	_, err := toml.DecodeFile("fastbrowser.toml", &d)
 	return d, err
 }
