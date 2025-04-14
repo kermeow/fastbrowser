@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"github.com/tawesoft/golib/v2/dialog"
 )
 
 type Browser struct {
@@ -101,7 +103,7 @@ func (ui *Browser) draw(gtx layout.Context) layout.Dimensions {
 	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx,
 		layout.Flexed(1, ui.songList.Layout),
 		layout.Rigid(layout.Spacer{Width: unit.Dp(4)}.Layout),
-		layout.Rigid(ui.songDetails.Layout),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions { return ui.songDetails.Layout(gtx, ui.startFastGH3) }),
 	)
 }
 
@@ -110,6 +112,16 @@ func (ui *Browser) drawLoading(gtx layout.Context) layout.Dimensions {
 		layout.Rigid(material.H2(ui.Theme, "Scanning charts").Layout),
 		layout.Rigid(material.Label(ui.Theme, unit.Sp(18), ui.loadingText).Layout),
 	)
+}
+
+func (ui *Browser) startFastGH3(chart *gh.Chart) {
+	log.Println("Trying to start FastGH3")
+	path, err := exec.LookPath(filepath.Join(ui.Config.GameDir, "FastGH3.exe"))
+	if err != nil {
+		dialog.Error("There was an issue starting FastGH3.\nDouble check the path is correct in fastbrowser.toml.")
+		return
+	}
+	exec.Command(path, chart.ChartFile()).Start()
 }
 
 func (ui *Browser) getCharts() {

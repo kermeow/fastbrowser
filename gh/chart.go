@@ -61,6 +61,13 @@ type Chart struct {
 	iniFile   string
 }
 
+func (c *Chart) ChartFile() string {
+	if c.midFile != "" {
+		return filepath.Join(c.path, c.midFile)
+	}
+	return filepath.Join(c.path, c.chartFile)
+}
+
 func ReadChart(dirPath string) (*Chart, error) {
 	chart := &Chart{
 		Name:       "Unknown",

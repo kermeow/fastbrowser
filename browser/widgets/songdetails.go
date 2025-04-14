@@ -31,7 +31,7 @@ func NewSongDetails(theme *material.Theme) *SongDetails {
 	}
 }
 
-func (sd *SongDetails) Layout(gtx layout.Context) layout.Dimensions {
+func (sd *SongDetails) Layout(gtx layout.Context, cb func(*gh.Chart)) layout.Dimensions {
 	constraints := gtx.Constraints.Constrain(image.Pt(360, gtx.Constraints.Max.Y))
 
 	defer clip.Rect{Max: constraints}.Push(gtx.Ops).Pop()
@@ -49,6 +49,10 @@ func (sd *SongDetails) Layout(gtx layout.Context) layout.Dimensions {
 		playBtn := material.Button(sd.Theme, sd.playButton, "Start FastGH3")
 		playBtn.TextSize = unit.Sp(18)
 		playBtn.Background = color.NRGBA{39, 98, 33, 255}
+
+		if sd.playButton.Clicked(gtx) {
+			cb(sd.Chart)
+		}
 
 		defer op.Offset(image.Pt(4, 4)).Push(gtx.Ops).Pop()
 		layout.Flex{Axis: layout.Vertical}.Layout(gtx,
