@@ -31,6 +31,7 @@ type Browser struct {
 	Charts []*gh.Chart
 
 	loading bool
+	loadingText string
 	songList *widgets.SongList
 }
 
@@ -78,7 +79,12 @@ func (ui *Browser) Run() error {
 			paint.Fill(gtx.Ops, ui.Theme.Bg)
 
 			if ui.Charts == nil || ui.loading {
-				layout.Center.Layout(gtx, material.H2(ui.Theme, "We're still scanning your charts!").Layout)
+				layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle, Spacing: layout.SpaceSides}.Layout(gtx,
+						layout.Rigid(material.H2(ui.Theme, "Scanning charts").Layout),
+						layout.Rigid(material.Label(ui.Theme, unit.Sp(18), ui.loadingText).Layout),
+					)
+				})
 			} else {
 				inset := layout.UniformInset(unit.Dp(16))
 				inset.Layout(gtx, ui.draw)
@@ -108,8 +114,20 @@ func (ui *Browser) getCharts() {
 			continue
 		}
 		filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-			ext := strings.ToLower(filepath.Ext(d.Name()))
-			if ext == ".chart" || ext == ".mid" || strings.ToLower(d.Name()) == "song.ini" {
+			if d.IsDir() {
+				return nil
+			}
+			// relpath, _ := filepath.Rel(root, path)
+			ui.loadingText = filepath.ToSlash(path)
+			ui.Invalidate()
+			name := strings.ToLower(d.Name())
+			ext := filepath.Ext(name)
+			// time.Sleep(time.Millisecond * 100)
+			if name == "song.ini" ||
+				name[0:6] == "album." ||
+				name[0:7] == "guitar." ||
+				ext == ".chart" ||
+				ext == ".mid" {
 				// WE HAVE A WINNER
 				chart, err := gh.ReadChart(filepath.Dir(path))
 				if err != nil {
