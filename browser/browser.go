@@ -6,6 +6,12 @@ import (
 	"fastgh3/fastbrowser/fonts"
 	"fastgh3/fastbrowser/gh"
 	"image/color"
+	"io/fs"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"gioui.org/app"
 	"gioui.org/io/system"
@@ -86,5 +92,29 @@ func (ui *Browser) draw(gtx layout.Context) layout.Dimensions {
 }
 
 func (ui *Browser) getCharts() {
-	
+	startTime := time.Now()
+
+	for _, root := range ui.Config.SearchDirs {
+		root = filepath.Clean(root)
+		if fi, err := os.Stat(root); os.IsNotExist(err) || !fi.Mode().IsDir() {
+			log.Printf("Search dir '%s' doesn't exist", root)
+			continue
+		}
+		filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+			ext := strings.ToLower(filepath.Ext(d.Name()))
+			if ext == ".chart" || ext == ".mid" || strings.ToLower(d.Name()) == "song.ini" {
+				// WE HAVE A WINNER
+				chart, err := gh.ReadChart(filepath.Dir(path))
+				if err != nil {
+					return nil
+				}
+				ui.Charts = append(ui.Charts, chart)
+				return filepath.SkipDir
+			}
+			return nil
+		})
+	}
+
+	finishTime := time.Now()
+	log.Printf("Read %d charts in %dms", len(ui.Charts), finishTime.Sub(startTime).Milliseconds())
 }

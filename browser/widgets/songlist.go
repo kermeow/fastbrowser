@@ -57,7 +57,7 @@ func (sl *SongList) Layout(gtx layout.Context) layout.Dimensions {
 	gtx.Constraints.Max.X -= 8
 	gtx.Constraints.Max.Y -= 8
 	defer op.Offset(image.Pt(4, 4)).Push(gtx.Ops).Pop()
-	defer op.Offset(image.Pt(0, int(-sl.scrollPosition*24))).Push(gtx.Ops).Pop()
+	defer op.Offset(image.Pt(0, int(-sl.scrollPosition*32))).Push(gtx.Ops).Pop()
 
 	i := 0
 	for _, chart := range *sl.Charts {
@@ -75,8 +75,8 @@ func (sl *SongList) Layout(gtx layout.Context) layout.Dimensions {
 		sl.scrollPosition = 0
 		gtx.Execute(op.InvalidateCmd{})
 	}
-	if sl.scrollPosition*24 > 32*float32(i-1) {
-		sl.scrollPosition = 32 * float32(i-1) / 24
+	if sl.scrollPosition*32 > 36*float32(i-1) {
+		sl.scrollPosition = 36 * float32(i-1) / 32
 		gtx.Execute(op.InvalidateCmd{})
 	}
 

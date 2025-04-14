@@ -82,10 +82,11 @@ func ReadChart(dirPath string) (*Chart, error) {
 		if d.IsDir() {
 			continue
 		}
-		if strings.ToLower(filepath.Ext(d.Name())) == ".chart" {
+		ext := strings.ToLower(filepath.Ext(d.Name()))
+		if ext == ".chart" {
 			chart.chartFile = d.Name()
 		}
-		if strings.ToLower(filepath.Ext(d.Name())) == ".mid" {
+		if ext == ".mid" {
 			chart.midFile = d.Name()
 		}
 		if strings.ToLower(d.Name()) == "song.ini" {
