@@ -84,7 +84,10 @@ func (sl *SongList) Layout(gtx layout.Context) layout.Dimensions {
 			}
 			btn := sl.buttons[i]
 			btn.Chart = chart
-			btn.Layout(gtx, func(sb *SongButton) { sl.SelectedChart = sb.Chart })
+			btn.Layout(gtx, func(sb *SongButton) {
+				sl.SelectedChart = sb.Chart
+				gtx.Execute(op.InvalidateCmd{})
+			})
 			defer op.Offset(image.Pt(0, 36)).Push(gtx.Ops).Pop()
 			i++
 		}

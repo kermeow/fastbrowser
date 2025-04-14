@@ -2,7 +2,6 @@ package fonts
 
 import (
 	"fastgh3/fastbrowser/fonts/nunito"
-	"fastgh3/fastbrowser/fonts/ubuntumono"
 	"fmt"
 	"sync"
 
@@ -24,7 +23,7 @@ func Collection() []font.FontFace {
 		// register(font.Font{Weight: font.Bold, Style: font.Regular}, "Nunito", nunito.Bold)
 		// register(font.Font{Weight: font.Bold, Style: font.Italic}, "Nunito", nunito.BoldItalic)
 		// Ubuntu Mono
-		register(font.Font{Weight: font.Normal, Style: font.Regular}, "UbuntuMono", ubuntumono.Regular)
+		// register(font.Font{Weight: font.Normal, Style: font.Regular}, "UbuntuMono", ubuntumono.Regular)
 		// register(font.Font{Weight: font.Normal, Style: font.Italic}, "UbuntuMono", ubuntumono.Italic)
 		// register(font.Font{Weight: font.Bold, Style: font.Regular}, "UbuntuMono", ubuntumono.Bold)
 		// register(font.Font{Weight: font.Bold, Style: font.Italic}, "UbuntuMono", ubuntumono.BoldItalic)

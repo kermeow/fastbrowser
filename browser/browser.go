@@ -34,6 +34,7 @@ type Browser struct {
 	loading     bool
 	loadingText string
 	songList    *widgets.SongList
+	songDetails *widgets.SongDetails
 }
 
 func New(conf *config.Config) *Browser {
@@ -48,6 +49,8 @@ func New(conf *config.Config) *Browser {
 		material.Palette{
 			Bg: color.NRGBA{18, 18, 18, 255},
 			Fg: color.NRGBA{240, 240, 240, 255},
+			ContrastBg: color.NRGBA{8, 8, 8, 255},
+			ContrastFg: color.NRGBA{255, 255, 255, 255},
 		},
 	)
 	theme.Shaper = text.NewShaper(text.WithCollection(fonts.Collection()))
@@ -63,6 +66,7 @@ func New(conf *config.Config) *Browser {
 		loading: true,
 	}
 	browser.songList = widgets.NewSongList(&theme, &browser.Charts)
+	browser.songDetails = widgets.NewSongDetails(&theme)
 	return browser
 }
 
@@ -80,14 +84,11 @@ func (ui *Browser) Run() error {
 			paint.Fill(gtx.Ops, ui.Theme.Bg)
 
 			if ui.Charts == nil || ui.loading {
-				layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle, Spacing: layout.SpaceSides}.Layout(gtx,
-						layout.Rigid(material.H2(ui.Theme, "Scanning charts").Layout),
-						layout.Rigid(material.Label(ui.Theme, unit.Sp(18), ui.loadingText).Layout),
-					)
-				})
+				layout.Center.Layout(gtx, ui.drawLoading)
 			} else {
-				inset := layout.UniformInset(unit.Dp(16))
+				ui.songDetails.Chart = ui.songList.SelectedChart
+
+				inset := layout.UniformInset(unit.Dp(4))
 				inset.Layout(gtx, ui.draw)
 			}
 
@@ -97,9 +98,17 @@ func (ui *Browser) Run() error {
 }
 
 func (ui *Browser) draw(gtx layout.Context) layout.Dimensions {
-	return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx,
 		layout.Flexed(1, ui.songList.Layout),
-		layout.Rigid(layout.Spacer{Width: unit.Dp(8)}.Layout),
+		layout.Rigid(layout.Spacer{Width: unit.Dp(4)}.Layout),
+		layout.Rigid(ui.songDetails.Layout),
+	)
+}
+
+func (ui *Browser) drawLoading(gtx layout.Context) layout.Dimensions {
+	return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle, Spacing: layout.SpaceSides}.Layout(gtx,
+		layout.Rigid(material.H2(ui.Theme, "Scanning charts").Layout),
+		layout.Rigid(material.Label(ui.Theme, unit.Sp(18), ui.loadingText).Layout),
 	)
 }
 
@@ -141,7 +150,7 @@ func (ui *Browser) getCharts() {
 			})
 		}
 		finishTime := time.Now()
-		log.Printf("Read %d charts in %.3fms", len(charts), float32(finishTime.Sub(startTime).Microseconds()) / 1000)
+		log.Printf("Read %d charts in %.3fms", len(charts), float32(finishTime.Sub(startTime).Microseconds())/1000)
 	}
 
 	ui.loadingText = "Sorting by title"
@@ -153,7 +162,7 @@ func (ui *Browser) getCharts() {
 			return strings.Compare(a.Name, b.Name)
 		})
 		finishTime := time.Now()
-		log.Printf("Sorted %d charts in %.3fms", len(charts), float32(finishTime.Sub(startTime).Microseconds()) / 1000)
+		log.Printf("Sorted %d charts in %.3fms", len(charts), float32(finishTime.Sub(startTime).Microseconds())/1000)
 	}
 
 	ui.Charts = charts
